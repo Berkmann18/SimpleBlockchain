@@ -1,4 +1,4 @@
-const Blockchain = require('./blockchain'), Block = require('./sblock');
+const Blockchain = require('./blockchain'), Block = require('./block');
 
 let chain = new Blockchain();
 chain.addBlock(new Block({amount: 10}, 1, Date.now()));

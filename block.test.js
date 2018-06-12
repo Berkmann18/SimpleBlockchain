@@ -1,4 +1,4 @@
-const Block = require('./sblock'), SHA256 = require('crypto-js/sha256');
+const Block = require('./block'), SHA256 = require('crypto-js/sha256');
 
 test('Block created', () => {
   let pl = 'Lorem', ts = Date.now(), block = new Block(pl), hash = SHA256(ts + JSON.stringify(pl)).toString();

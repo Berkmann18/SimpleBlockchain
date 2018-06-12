@@ -1,4 +1,4 @@
-const Block = require('./sblock');
+const Block = require('./block');
 
 /**
  * @description Blockchain.

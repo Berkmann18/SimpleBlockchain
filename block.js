@@ -1,14 +1,17 @@
+'use strict';
 const SHA256 = require('crypto-js/sha256');
+
+/** @private */
+let prvProps = new WeakMap();
 
 /**
  * Blockchain block.
- * @version 0.1
+ * @version 1.0
  * @property {*} Block._data Data
  * @property {number} Block._index Index of the block in a _chain
  * @property {number} Block._timestamp Timestamp associated to the block
  * @property {string} Block._prevHash Previous block's hash
  * @property {string} Block._hash Current block's hash
- * @deprecated
  */
 class Block {
   /**
@@ -20,15 +23,7 @@ class Block {
    */
   constructor(data, index = 0, timestamp = Date.now(), prevHash = '') {
     /** @private */
-    this._index = index;
-    /** @private */
-    this._data = data;
-    /** @private */
-    this._timestamp = timestamp;
-    /** @protected */
-    this._prevHash = prevHash;
-    /** @protected */
-    this._hash = '';
+    prvProps.set(this, {data, index, timestamp, prevHashs});
     this.updateHash();
   }
 
@@ -36,14 +31,14 @@ class Block {
    * @description Calculate the hash.
    */
   calculateHash() {
-    return SHA256(this._index + this._timestamp + JSON.stringify(this._data) + this._prevHash).toString()
+    return SHA256(prvProps.get(this).index + prvProps.get(this).timestamp + JSON.stringify(prvProps.get(this).data) + prvProps.get(this).prevHash).toString()
   }
 
   /**
    * @description Update the hash of the block.
    */
   updateHash() {
-    this._hash = this.calculateHash();
+    prvProps.get(this).hash = this.calculateHash();
   }
 
   /**
@@ -51,7 +46,7 @@ class Block {
    * @return {number} Index
    */
   get index() {
-    return this._index;
+    return prvProps.get(this).index;
   }
 
   /**
@@ -59,7 +54,7 @@ class Block {
    * @return {*} Data
    */
   get data() {
-    return this._data;
+    return prvProps.get(this).data;
   }
 
   /**
@@ -67,7 +62,7 @@ class Block {
    * @return {number} Timestamp
    */
   get timestamp() {
-    return this._timestamp;
+    return prvProps.get(this).timestamp;
   }
 
   /**
@@ -75,7 +70,7 @@ class Block {
    * @return {string} Previous hash
    */
   get prevHash() {
-    return this._prevHash;
+    return prvProps.get(this).prevHash;
   }
 
   /**
@@ -83,11 +78,11 @@ class Block {
    * @return {*} Hash
    */
   get hash() {
-    return this._hash;
+    return prvProps.get(this).hash;
   }
 
   toString() {
-    return `Block(index=${this.index}, data=${JSON.stringify(this.data)}, timestamp=${this.timestamp}, prevHash=${this.prevHash}, hash=${this.hash})`;
+    return `Block(index=${this.index}, data=${this.data}, timestamp=${this.timestamp}, prevHash=${this.prevHash}, hash=${this.hash})`;
   }
 
   /**
