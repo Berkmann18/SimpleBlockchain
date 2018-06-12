@@ -1,2 +1,3 @@
 # Blockchain
-A JS blockchain made from scratch
+An ES6 blockchain made from scratch which focuses on both usability and security.
+

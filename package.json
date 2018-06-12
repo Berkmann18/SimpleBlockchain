@@ -1,0 +1,26 @@
+{
+  "name": "simpleblockchain",
+  "version": "1.0.0",
+  "description": "A simple blockchain",
+  "main": "block.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [
+    "blockchain",
+    "simple",
+    "JS"
+  ],
+  "author": "Berkmann18",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "crypto-js": "^3.1.9-1",
+    "express": "^4.16.3",
+    "uuid": "^3.2.1"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "jsdoc": "^3.5.5"
+  }
+}
