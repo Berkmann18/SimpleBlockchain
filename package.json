@@ -4,7 +4,9 @@
   "description": "A simple blockchain",
   "main": "block.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "lint": "eslint -c ./cfg/.eslintrc.js --fix",
+    "doc": "jsdoc -c ./cfg/jsdoc.json"
   },
   "keywords": [
     "blockchain",
@@ -21,6 +23,7 @@
   },
   "devDependencies": {
     "eslint": "^4.19.1",
+    "eslint-plugin-security": "^1.4.0",
     "jest": "^23.1.0",
     "jsdoc": "^3.5.5"
   }

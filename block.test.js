@@ -1,7 +1,7 @@
 const Block = require('./block'), SHA256 = require('crypto-js/sha256');
 
 test('Block created', () => {
-  let pl = 'Lorem', ts = Date.now(), block = new Block(pl), hash = SHA256(ts + JSON.stringify(pl)).toString();
+  let pl = 'Lorem', ts = Date.now(), block = new Block(pl), hash = SHA256(ts + JSON.stringify(pl) + 0).toString();
   expect(block).toBeDefined();
   expect(block.data).toBe(pl);
   expect(block.index).toBe(0);

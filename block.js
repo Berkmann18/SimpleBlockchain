@@ -7,15 +7,16 @@ let prvProps = new WeakMap();
 /**
  * Blockchain block.
  * @version 1.0
- * @property {*} Block._data Data
- * @property {number} Block._index Index of the block in a _chain
- * @property {number} Block._timestamp Timestamp associated to the block
- * @property {string} Block._prevHash Previous block's hash
- * @property {string} Block._hash Current block's hash
+ * @property {*} Block.data Data
+ * @property {number} Block.index Index of the block in a chain
+ * @property {number} Block.timestamp Timestamp associated to the block
+ * @property {string} Block.prevHash Previous block's hash
+ * @property {string} Block.hash Current block's hash
+ * @property {number} Block.nonce Nonce associated to the block
  */
 class Block {
   /**
-   * @description Block _chain block.
+   * @description Block chain block.
    * @param {*} data Data contained in the block
    * @param {number} [index=0] Index
    * @param {number} [timestamp=Date.now()] Timestamp associated to the block
@@ -23,7 +24,7 @@ class Block {
    */
   constructor(data, index = 0, timestamp = Date.now(), prevHash = '') {
     /** @private */
-    prvProps.set(this, {data, index, timestamp, prevHashs});
+    prvProps.set(this, {data, index, timestamp, prevHash, hash: '', nonce: 0});
     this.updateHash();
   }
 
@@ -31,7 +32,7 @@ class Block {
    * @description Calculate the hash.
    */
   calculateHash() {
-    return SHA256(prvProps.get(this).index + prvProps.get(this).timestamp + JSON.stringify(prvProps.get(this).data) + prvProps.get(this).prevHash).toString()
+    return SHA256(prvProps.get(this).index + prvProps.get(this).timestamp + JSON.stringify(prvProps.get(this).data) + prvProps.get(this).prevHash + prvProps.get(this).nonce).toString()
   }
 
   /**
@@ -92,6 +93,18 @@ class Block {
    */
   equals(block) {
     return this.index === block.index && this.hash === block.hash
+  }
+
+  /**
+   * @description Increment the nonce until a valid hash is obtained with enough 0's at the beginning (based on the difficulty).
+   * @param {number} difficulty Difficulty of the hash
+   */
+  mineBlock(difficulty) {
+    while (this.hash.substring(0, difficulty) !== '0'.repeat(difficulty)) {
+      prvProps.get(this).nonce++;
+      this.updateHash();
+    }
+    // console.log(`BLOCK MINED: ${this.hash}, nonce: ${prvProps.get(this).nonce}`);
   }
 }
 

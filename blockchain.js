@@ -1,21 +1,25 @@
-const Block = require('./block');
+const Block = require('./block'), SHA256 = require('crypto-js/sha256');
+
+/** @private */
+let prvProps = new WeakMap();
 
 /**
  * @description Blockchain.
  * @property {Block[]} Blockchain._chain Chain of blocks
+ * @property {number} Blockchain._difficulty Number of 0's at the beginning of hashes
  */
 class Blockchain {
-  constructor(genesisBlock = Blockchain.createGenesisBlock()) {
-    /** @private */
-    this._chain = [genesisBlock]; //Initialize with a genesis block (first block)
+  constructor(difficulty = 2, genesisBlock = Blockchain.createGenesisBlock(difficulty)) {
+    genesisBlock.mineBlock(difficulty);
+    prvProps.set(this, {chain: [genesisBlock], difficulty});
   }
-
   /**
    * @description Create the first (genesis) block.
-   * @return {Block}
+   * @param {number} difficulty Difficulty of the hash
+   * @return {Block} Genesis block
    */
-  static createGenesisBlock() {
-    return new Block('Genesis Block', 0, Date.now(), '0');
+  static createGenesisBlock(difficulty) {
+    return new Block('Genesis Block', 0, Date.now(), SHA256(difficulty));
   }
 
   /**
@@ -23,9 +27,6 @@ class Blockchain {
    * @param {Block} block New block.
    */
   addBlock(block) {
-    /*block._prevHash = this.getLast().hash;
-    block.updateHash();
-    this._chain.push(block);*/
     this.add(block.data, block.index, block.timestamp)
   }
 
@@ -37,7 +38,8 @@ class Blockchain {
    */
   add(data, index=this.getNextIndex(), timestamp=Date.now()) {
     let newBlock = new Block(data, index, timestamp, this.getBlock(-1).hash);
-    this._chain.push(newBlock);
+    newBlock.mineBlock(prvProps.get(this).difficulty);
+    prvProps.get(this).chain.push(newBlock);
   }
 
   /**
@@ -53,7 +55,15 @@ class Blockchain {
    * @return {Block[]} Chain
    */
   get chain() {
-    return this._chain;
+    return prvProps.get(this).chain;
+  }
+
+  /**
+   * @description Get the hash difficulty.
+   * @return {number} Difficulty
+   */
+  get difficulty() {
+    return prvProps.get(this).difficulty;
   }
 
   /**
@@ -61,7 +71,7 @@ class Blockchain {
    * @return {number} Size
    */
   size() {
-    return this._chain.length;
+    return prvProps.get(this).chain.length;
   }
 
   /**
@@ -72,7 +82,7 @@ class Blockchain {
   getBlock(index) {
     let sz = this.size();
     if (index > sz) throw new Error('Index out of bounds');
-    else return (index < 0) ? this._chain[sz + index] : this._chain[index];
+    else return (index < 0) ? prvProps.get(this).chain[sz + index] : prvProps.get(this).chain[index];
   }
 
   /**
@@ -84,19 +94,21 @@ class Blockchain {
   }
 
   /**
-   * @description Validates the _chain.
+   * @description Validates the chain.
    * @return {boolean} Validity
    */
   isValid() {
-    for (let i = 1; i < this._chain.length; ++i){
-      const currentBlock = this._chain[i], prevBlock = this._chain[i - 1];
-      if (currentBlock.hash !== currentBlock.calculateHash() || currentBlock.prevHash !== prevBlock.hash) return false;
+    let chain = this.chain;
+    for (let i = 1; i < chain.length; ++i){
+      const currentBlock = chain[i], prevBlock = chain[i - 1], pad = '0'.repeat(this.difficulty);
+      let incorrectPadding = (!currentBlock.hash.startsWith(pad) || !prevBlock.hash.startsWith(pad));
+      if (incorrectPadding || currentBlock.hash !== currentBlock.calculateHash() || currentBlock.prevHash !== prevBlock.hash) return false;
     }
     return true;
   }
 
   toString() {
-    return `Blockchain(chain=[${this.chain.map(block => block.toString())}])`;
+    return `Blockchain(chain=[${this.chain.map(block => block.toString())}], difficulty=${prvProps.get(this).difficulty})`;
   }
 }
 
