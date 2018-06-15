@@ -5,10 +5,8 @@ const SHA256 = require('crypto-js/sha256');
 let prvProps = new WeakMap();
 
 /**
- * Blockchain block.
- * @version 1.0
- * @property {*} Block.data Data
- * @property {number} Block.index Index of the block in a chain
+ * Blockchain transactions block.
+ * @property {array} Block.transactions Transactions
  * @property {number} Block.timestamp Timestamp associated to the block
  * @property {string} Block.prevHash Previous block's hash
  * @property {string} Block.hash Current block's hash
@@ -17,14 +15,15 @@ let prvProps = new WeakMap();
 class Block {
   /**
    * @description Block chain block.
-   * @param {*} data Data contained in the block
-   * @param {number} [index=0] Index
+   * @param {Transaction[]} transactions Data contained in the block
    * @param {number} [timestamp=Date.now()] Timestamp associated to the block
    * @param {string} [prevHash=''] Hash of the previous block
+   * @throws {TypeError} transactions isn't an array
    */
-  constructor(data, index = 0, timestamp = Date.now(), prevHash = '') {
+  constructor(transactions, timestamp = Date.now(), prevHash = '') {
+    if (!Array.isArray(transactions)) throw new TypeError(`${transactions} isn't of type Transaction[]`);
     /** @private */
-    prvProps.set(this, {data, index, timestamp, prevHash, hash: '', nonce: 0});
+    prvProps.set(this, {transactions, timestamp, prevHash, hash: '', nonce: 0});
     this.updateHash();
   }
 
@@ -32,7 +31,7 @@ class Block {
    * @description Calculate the hash.
    */
   calculateHash() {
-    return SHA256(prvProps.get(this).index + prvProps.get(this).timestamp + JSON.stringify(prvProps.get(this).data) + prvProps.get(this).prevHash + prvProps.get(this).nonce).toString()
+    return SHA256(prvProps.get(this).timestamp + JSON.stringify(prvProps.get(this).transactions) + prvProps.get(this).prevHash + prvProps.get(this).nonce).toString()
   }
 
   /**
@@ -43,19 +42,11 @@ class Block {
   }
 
   /**
-   * @description Get the block's index.
-   * @return {number} Index
+   * @description Get the block's transactions.
+   * @return {*} Transaction
    */
-  get index() {
-    return prvProps.get(this).index;
-  }
-
-  /**
-   * @description Get the block's payload.
-   * @return {*} Data
-   */
-  get data() {
-    return prvProps.get(this).data;
+  get transactions() {
+    return prvProps.get(this).transactions;
   }
 
   /**
@@ -83,7 +74,7 @@ class Block {
   }
 
   toString() {
-    return `Block(index=${this.index}, data=${this.data}, timestamp=${this.timestamp}, prevHash=${this.prevHash}, hash=${this.hash})`;
+    return `Block(transactions=[${this.transactions.map(trans => trans.toString())}], timestamp=${this.timestamp}, prevHash=${this.prevHash}, hash=${this.hash})`;
   }
 
   /**
@@ -92,7 +83,7 @@ class Block {
    * @return {boolean} Equality
    */
   equals(block) {
-    return this.index === block.index && this.hash === block.hash
+    return this.hash === block.hash
   }
 
   /**
@@ -104,8 +95,52 @@ class Block {
       prvProps.get(this).nonce++;
       this.updateHash();
     }
-    // console.log(`BLOCK MINED: ${this.hash}, nonce: ${prvProps.get(this).nonce}`);
   }
 }
 
-module.exports = Block;
+/**
+ * @description Mining transaction.
+ * @property {string} Transaction.from Origin address (sender)
+ * @property {string} Transaction.to Destination address (receiver)
+ * @property {number} Transaction.amount Amount
+ */
+class Transaction {
+  /**
+   * @param {string} from Address of the sender
+   * @param {string} to Address of the receiver
+   * @param {number} [amount=0] Amount of coins
+   */
+  constructor(from, to, amount = 0) {
+    prvProps.set(this, {from, to, amount});
+  }
+
+  /**
+   * @description Get the address the transaction comes from.
+   * @return {string} Origin
+   */
+  get from() {
+    return prvProps.get(this).from;
+  }
+
+  /**
+   * @description Get the address the transaction goes to.
+   * @return {string} Destination
+   */
+  get to() {
+    return prvProps.get(this).to;
+  }
+
+  /**
+   * @description Get the transaction' amount.
+   * @return {number} Coins
+   */
+  get amount() {
+    return prvProps.get(this).amount;
+  }
+
+  toString() {
+    return `Transaction(from=${this.from}, to=${this.to}, amount=${this.amount})`;
+  }
+}
+
+module.exports = {Block, Transaction};
